@@ -252,6 +252,3 @@ typedef enum {
 #define qemu_real_host_page_mask()      qemu_real_host_page_mask
 #endif
 #endif /* QEMU_OSDEP_H */
-
-#define COMMIT_SIGN \
-    const char rev_[ALIGNED(1)]
