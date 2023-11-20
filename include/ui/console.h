@@ -445,6 +445,7 @@ void graphic_console_set_hwops(QemuConsole *con,
                                void *opaque);
 void graphic_console_close(QemuConsole *con);
 
+int graphic_hw_halt(const int);
 void graphic_hw_update(QemuConsole *con);
 void graphic_hw_update_done(QemuConsole *con);
 void graphic_hw_invalidate(QemuConsole *con);
@@ -535,5 +536,20 @@ bool qemu_console_fill_device_address(QemuConsole *con,
                                       char *device_address,
                                       size_t size,
                                       Error **errp);
+
+/* glidewnd.c */
+void glide_prepare_window(uint32_t, int, void *, void *);
+void glide_release_window(void *, void *);
+int glide_window_stat(const int);
+int glide_gui_fullscreen(int *, int *);
+void glide_renderer_stat(const int);
+
+/* mglcntx.c */
+void mesa_renderer_stat(const int);
+void mesa_prepare_window(int, int, int, void *);
+void mesa_release_window(void);
+void mesa_cursor_define(int, int, int, int, const void *);
+void mesa_mouse_warp(int, int, const int);
+int mesa_gui_fullscreen(int *);
 
 #endif

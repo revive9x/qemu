@@ -212,6 +212,13 @@ static void gui_setup_refresh(DisplayState *ds)
     ds->have_text = have_text;
 }
 
+int graphic_hw_halt(const int enable)
+{
+    static int halt_en;
+    halt_en = (enable & 0x80U)? (enable & 0x01U):halt_en;
+    return halt_en;
+}
+
 void graphic_hw_update_done(QemuConsole *con)
 {
     if (con) {
@@ -227,6 +234,8 @@ void graphic_hw_update(QemuConsole *con)
         return;
     }
     if (con->hw_ops->gfx_update) {
+        if (graphic_hw_halt(0)) { }
+        else
         con->hw_ops->gfx_update(con->hw);
         async = con->hw_ops->gfx_update_async;
     }
