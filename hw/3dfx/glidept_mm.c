@@ -942,19 +942,16 @@ static void glidept_write(void *opaque, hwaddr addr, uint64_t val, unsigned size
 	case 0xfbc:
             if ((val == 0xa0243) || (val == 0xa0211) || (val == 0xa0301)) {
                 s->initDLL = 0;
-            
-                // TODO: Again: Probably some kind of version check with the guest DLL
-                if (memcmp(s->glfb_ptr + SHLFB_SIZE - ALIGNBO(1), "3dfx", ALIGNED(1)))
-                    break;
             }
-	    if (val == 0xa0243) {
-		strncpy(s->version, "Glide2x", sizeof(char [80])-1);
-		if (init_glide2x("glide2x.dll") == 0) {
-		    s->initDLL = 0x243a0;
-		    s->lfbDev->v1Lfb = 0;
-		    s->lfbDev->emu211 = 0;
-		    DPRINTF("DLL loaded - glide2x.dll");
-		}
+	    
+        if (val == 0xa0243) {
+            strncpy(s->version, "Glide2x", sizeof(char [80])-1);
+            if (init_glide2x("glide2x.dll") == 0) {
+                s->initDLL = 0x243a0;
+                s->lfbDev->v1Lfb = 0;
+                s->lfbDev->emu211 = 0;
+                DPRINTF("DLL loaded - glide2x.dll");
+            }
 	    }
             else if (val == 0xa0211) {
 		strncpy(s->version, "Glide", sizeof(char [80])-1);

@@ -2205,11 +2205,8 @@ static void mesapt_write(void *opaque, hwaddr addr, uint64_t val, unsigned size)
         switch (val) {
             case 0xA0320:
                 s->MesaVer = 0;
-                
-                // TODO: Check if this is true?
-                // Probably some kind of version check with the guest dll?
-                if ((memcmp(s->fbtm_ptr + MGLFBT_SIZE - ALIGNBO(1), "3dfx", ALIGNED(1)) == 0) &&
-                    (InitMesaGL() == 0)) {
+
+                if (InitMesaGL() == 0) {
                     s->MesaVer = (uint32_t)((val >> 12) & 0xFFU) | ((val & 0xFFFU) << 8);
                     MGLTmpContext();
                     DPRINTF("DLL loaded");
