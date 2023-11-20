@@ -11,11 +11,17 @@ make -j$(nproc)
 
 ### How to run (Win98SE):
 
+This command allows you to run a KVM accelerated Win9x guest with OpenGL passthrough. It also enables a pcnet network card.
+
 ```
-./qemu-system-i386 -monitor stdio -nodefaults -rtc base=localtime \
-    -cpu pentium2 -m 256 -display sdl \
-    -M pc,accel=kvm,hpet=off,kernel-irqchip=off,usb=off \
-    -device VGA -device lsi -device ac97 \
-    -drive id=win98,if=none,file=w98.qcow2 -device scsi-hd,drive=win98 \
-    -drive id=scd0,if=none,media=cdrom,file=../vmaddons.iso -device scsi-cd,drive=scd0
+./qemu-system-i386 -nodefaults -rtc base=localtime -display sdl \
+    -M pc,accel=kvm,hpet=off,usb=off -cpu host \
+    -device VGA -device lsi -device ac97 \
+    -netdev user,id=net0 -device pcnet,rombar=0,netdev=net0 \
+    -drive id=win98,if=none,file=w98.qcow2 -device scsi-hd,drive=win98 \
+    -drive id=vm3d,if=none,media=cdrom,file=vmaddons.iso -device scsi-cd,drive=vm3d
 ```
+
+### Up next:
+- Properly document in-guest setup
+- Figure out how to reliably build the guest wrappers (Docker?)
