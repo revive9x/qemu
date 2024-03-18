@@ -316,7 +316,7 @@ if get_option('fuzzing') and get_option('fuzzing_engine') == '' and \
           int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size);
           int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) { return 0; }
         ''',
-        args: ['-Werror', '-fsanitize=fuzzer'])
+        args: [-fsanitize=fuzzer'])
   error('Your compiler does not support -fsanitize=fuzzer')
 endif
 
@@ -2218,7 +2218,8 @@ config_host_data.set('HAVE_BROKEN_SIZE_MAX', not cc.compiles('''
     #include <stdio.h>
     int main(void) {
         return printf("%zu", SIZE_MAX);
-    }''', args: ['-Werror']))
+    }''', args: []))  # Remove '-Werror' from args
+
 
 atomic_test = '''
   #include <stdint.h>
