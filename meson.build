@@ -237,7 +237,7 @@ if get_option('fuzzing')
                               native: false, language: ['c', 'cpp', 'objc'])
     # For the actual fuzzer binaries, we need to link against the libfuzzer
     # library. They need to be configurable, to support OSS-Fuzz
-    fuzz_exe_ldflags = ['-fsanitize=fuzzer']
+    fuzz_exe_ldflags = ['-fsanitize=fuzzer'''])
   else
     # LIB_FUZZING_ENGINE was set; assume we are running on OSS-Fuzz, and
     # the needed CFLAGS have already been provided
