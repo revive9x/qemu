@@ -17,9 +17,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Clone QEMU
-        run: git clone https://github.com/qemu/qemu.git
-
 
       - name: Set up MSYS2
         run: |
@@ -119,21 +116,14 @@ jobs:
           $env:CCACHE_MAXSIZE = "500M"
           $env:CCACHE_DEPEND = 1 # cache misses are too expensive with preprocessor mode
           $env:CC = "ccache gcc"
-          D:\a\qemu-3dfx\qemu-3dfx\msys64\usr\bin\bash -lc "wget --no-check-certificate https://download.qemu.org/qemu-8.2.1.tar.xz"
-          D:\a\qemu-3dfx\qemu-3dfx\msys64\usr\bin\bash -lc "tar xfv qemu-8.2.1.tar.xz"
-          cd qemu-8.2.1
-          D:\a\qemu-3dfx\qemu-3dfx\msys64\usr\bin\bash -lc "rsync -r ../qemu-0/hw/3dfx ./hw/"
-          D:\a\qemu-3dfx\qemu-3dfx\msys64\usr\bin\bash -lc "rsync -r ../qemu-1/hw/mesa ./hw/"
-          D:\a\qemu-3dfx\qemu-3dfx\msys64\usr\bin\bash -lc "patch -p0 -i ../00-qemu82x-mesa-glide.patch"
-          D:\a\qemu-3dfx\qemu-3dfx\msys64\usr\bin\bash -lc "../scripts/sign_commit" 
           mkdir build
           cd build
-          D:\a\qemu-3dfx\qemu-3dfx\msys64\usr\bin\bash -lc "ccache --zero-stats"
-          D:\a\qemu-3dfx\qemu-3dfx\msys64\usr\bin\bash -lc "../configure --target-list=i386-softmmu --enable-whpx --enable-sdl --disable-capstone --enable-slirp"
-          D:\a\qemu-3dfx\qemu-3dfx\msys64\usr\bin\bash -lc "make"
+          D:\a\qemu\qemu\msys64\usr\bin\bash -lc "ccache --zero-stats"
+          D:\a\qemu\qemu\msys64\usr\bin\bash -lc "../configure --target-list=i386-softmmu --enable-whpx --enable-sdl --disable-capstone --enable-slirp"
+          D:\a\qemu\qemu\msys64\usr\bin\bash -lc "make"
           cd ..
-          D:\a\qemu-3dfx\qemu-3dfx\msys64\usr\bin\bash -lc "tar -czvf qemu.tar.gz ./build"
-          D:\a\qemu-3dfx\qemu-3dfx\msys64\usr\bin\bash -lc "ccache --show-stats"
+          D:\a\qemu\qemu\msys64\usr\bin\bash -lc "tar -czvf qemu.tar.gz ./build"
+          D:\a\qemu\qemu\msys64\usr\bin\bash -lc "ccache --show-stats"
           Write-Output "Finished build at $(Get-Date -Format u)"
           
       - name: Upload Releases 
@@ -141,4 +131,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          file: D:\a\qemu-3dfx\qemu-3dfx\qemu-8.2.1\qemu.tar.gz
+          file: D:\a\qemu\qemu\qemu.tar.gz
