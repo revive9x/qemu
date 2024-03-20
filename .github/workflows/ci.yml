@@ -188,7 +188,7 @@ jobs:
             python3
       - name: Build qemu
         run: |
-          mkdir ../build && cd ../build
+          mkdir build && cd build
           ../configure --disable-werror --target-list=i386-softmmu --enable-kvm --enable-sdl --disable-capstone --enable-slirp      
           make -j$(nproc) CFLAGS="-Wall -Wno-error=pointer-to-int-cast -O2"
 
