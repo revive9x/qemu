@@ -237,7 +237,7 @@ if get_option('fuzzing')
                               native: false, language: ['c', 'cpp', 'objc'])
     # For the actual fuzzer binaries, we need to link against the libfuzzer
     # library. They need to be configurable, to support OSS-Fuzz
-    fuzz_exe_ldflags = ['-fsanitize=fuzzer'''])
+    fuzz_exe_ldflags = ['-fsanitize=fuzzer']
   else
     # LIB_FUZZING_ENGINE was set; assume we are running on OSS-Fuzz, and
     # the needed CFLAGS have already been provided
@@ -316,7 +316,7 @@ if get_option('fuzzing') and get_option('fuzzing_engine') == '' and \
           int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size);
           int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) { return 0; }
         ''',
-        args: [-fsanitize=fuzzer'])
+        args: ['-Werror', '-fsanitize=fuzzer'])
   error('Your compiler does not support -fsanitize=fuzzer')
 endif
 
@@ -2218,8 +2218,7 @@ config_host_data.set('HAVE_BROKEN_SIZE_MAX', not cc.compiles('''
     #include <stdio.h>
     int main(void) {
         return printf("%zu", SIZE_MAX);
-    }''', args: []))  # Remove '-Werror' from args
-
+    }''', args: ['-Werror']))
 
 atomic_test = '''
   #include <stdint.h>
