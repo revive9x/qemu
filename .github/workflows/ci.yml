@@ -191,6 +191,9 @@ jobs:
           mkdir build && cd build
           ../configure --disable-werror --target-list=i386-softmmu --enable-kvm --enable-sdl --disable-capstone --enable-slirp      
           make -j$(nproc) CFLAGS="-Wall -Wno-error=pointer-to-int-cast -O2"
+          cd ..
+          tar -czvf qemu.tar.gz ./build
+          
 
 
       - name: Upload Artifacts
@@ -205,7 +208,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          file: ./build
+          file: qemu.tar.gz
           draft: false
 
 
