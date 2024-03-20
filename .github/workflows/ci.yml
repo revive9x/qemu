@@ -266,7 +266,7 @@ jobs:
           ../configure && make
           cd ..
           cd ..
-          tar -czvf wrappers.tar.gz ./qemu-xtra ./qemu-3dfx
+          tar -czvf wrappers.tar.gz /home/runner/work/qemu/qemu/qemu-xtra/openglide/build /home/runner/work/qemu/qemu/qemu-3dfx/
         
 
 
