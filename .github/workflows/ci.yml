@@ -3,7 +3,7 @@ name: msys2-64bit
 on: [push]
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
     strategy:
       matrix:
@@ -132,4 +132,78 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           file: D:\a\qemu\qemu\qemu.tar.gz
+          draft: false
+
+
+
+
+
+        
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        uses: Amitie10g/install-package@main
+        with:
+          apt: >
+            meson
+            binutils-mips-linux-gnu
+            ninja-build
+            bsdmainutils
+            build-essential
+            libaudiofile-dev
+            binutils-djgpp
+            binutils-mingw-w64
+            libdigest-sha-perl
+            mingw-w64-tools
+            libsdl2-dev
+            libusb-1.0-0-dev
+            gcc-mingw-w64
+            g++-mingw-w64-i686
+            g++-mingw-w64
+            g++-10-multilib
+            gcc-10-multilib
+            gcc-mingw-w64-x86-64-win32-runtime
+            gcc-mingw-w64-i686
+            mingw-w64-x86-64-dev
+            mingw-w64-i686-dev
+            mingw-w64-common
+            libx11-dev
+            bison
+            diffutils
+            flex
+            make
+            sed
+            libglib2.0-dev
+            libfdt-dev
+            libpixman-1-dev
+            ninja-build
+            zlib1g-dev
+            libcapstone-dev
+            libslirp-dev
+            pkgconf
+            python3
+      - name: Build qemu
+        run: |
+          mkdir ../build && cd ../build
+          ../configure --disable-werror --target-list=i386-softmmu --enable-kvm --enable-sdl --disable-capstone --enable-slirp      
+          make -j$(nproc) CFLAGS="-Wall -Wno-error=pointer-to-int-cast -O2"
+
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: qemu-artifacts
+          path: ./build/
+
+
+      - name: Upload Releases 
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: ./build
           draft: false
