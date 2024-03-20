@@ -258,7 +258,6 @@ jobs:
     
       - name: Build Wrappers/Mesa
         run: |
-          git clone https://github.com/kjliew/qemu-3dfx.git
           cd qemu-3dfx
           cd wrappers/mesa
           mkdir build && cd build
