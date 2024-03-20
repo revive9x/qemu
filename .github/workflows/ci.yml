@@ -207,3 +207,82 @@ jobs:
         with:
           file: ./build
           draft: false
+
+
+
+  build-wrappers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        uses: Amitie10g/install-package@main
+        with:
+          apt: >
+            binutils-mips-linux-gnu
+            ninja-build
+            bsdmainutils
+            build-essential
+            libaudiofile-dev
+            binutils-djgpp
+            binutils-mingw-w64
+            libdigest-sha-perl
+            mingw-w64-tools
+            libsdl2-dev
+            libusb-1.0-0-dev
+            gcc-mingw-w64
+            g++-mingw-w64-i686
+            g++-mingw-w64
+            g++-10-multilib
+            gcc-10-multilib
+            gcc-mingw-w64-x86-64-win32-runtime
+            gcc-mingw-w64-i686
+            mingw-w64-x86-64-dev
+            mingw-w64-i686-dev
+            mingw-w64-common
+            libx11-dev
+            libcapstone-dev
+            pkgconf
+            python3
+      - name: Build Wrappers/3dfx
+        run: |
+          git clone https://github.com/kjliew/qemu-3dfx.git
+          cd qemu-3dfx
+          cd wrappers/3dfx
+          mkdir build && cd build
+          bash ../../../scripts/conf_wrapper
+          make
+    
+      - name: Build Wrappers/Mesa
+        run: |
+          git clone https://github.com/kjliew/qemu-3dfx.git
+          cd qemu-3dfx
+          cd wrappers/mesa
+          mkdir build && cd build
+          bash ../../../scripts/conf_wrapper
+          make
+
+      - name: Build Wrappers/Openglide
+        run: |
+          git clone https://github.com/kjliew/qemu-xtra.git
+          cd qemu-xtra
+          cd openglide
+          bash ./bootstrap
+          mkdir build && cd build
+          ../configure && make
+
+          
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Wrappers
+          path: .
+
+
+      - name: Upload Releases 
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: .
+          draft: false
