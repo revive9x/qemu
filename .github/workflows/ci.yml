@@ -119,7 +119,7 @@ jobs:
           mkdir build
           cd build
           D:\a\qemu\qemu\msys64\usr\bin\bash -lc "ccache --zero-stats"
-          D:\a\qemu\qemu\msys64\usr\bin\bash -lc "../configure --disable-Werror --target-list=i386-softmmu --enable-whpx --enable-sdl --disable-capstone --enable-slirp"
+          D:\a\qemu\qemu\msys64\usr\bin\bash -lc "../configure --disable-werror --target-list=i386-softmmu --enable-whpx --enable-sdl --disable-capstone --enable-slirp"
           D:\a\qemu\qemu\msys64\usr\bin\bash -lc "make -j$(nproc) CFLAGS="-Wall -Wno-error=pointer-to-int-cast -O2""
           cd ..
           D:\a\qemu\qemu\msys64\usr\bin\bash -lc "tar -czvf qemu.tar.gz ./build"
