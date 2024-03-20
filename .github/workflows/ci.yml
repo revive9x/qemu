@@ -195,14 +195,6 @@ jobs:
           tar -czvf qemu.tar.gz ./build
           
 
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: qemu-artifacts
-          path: ./build/
-
-
       - name: Upload Releases 
         uses: xresloader/upload-to-github-release@v1
         env:
@@ -272,13 +264,10 @@ jobs:
           bash ./bootstrap
           mkdir build && cd build
           ../configure && make
-
-          
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: Wrappers
-          path: .
+          cd ..
+          cd ..
+          tar -czvf wrappers.tar.gz ./qemu-xtra ./qemu-3dfx
+        
 
 
       - name: Upload Releases 
@@ -286,5 +275,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          file: .
+          file: wrappers.tar.gz
           draft: false
