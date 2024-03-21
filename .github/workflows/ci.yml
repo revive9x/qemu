@@ -1,0 +1,280 @@
+name: msys2-64bit
+
+on: [push]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        cache-name: [msys64-cache]
+    env:
+      MSYSTEM: MINGW64
+      FF_SCRIPT_SECTIONS: '0'
+      CONFIGURE_ARGS: '--target-list=x86_64-softmmu --without-default-devices -Ddebug=false -Doptimization=0'
+      TEST_ARGS: '--no-suite qtest'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+
+      - name: Set up MSYS2
+        run: |
+          Write-Output "Acquiring msys2.exe installer at $(Get-Date -Format u)"
+          If ( !(Test-Path -Path msys64\var\cache ) ) {
+              mkdir msys64\var\cache
+          }
+          Invoke-WebRequest "https://repo.msys2.org/distrib/msys2-x86_64-latest.sfx.exe.sig" -outfile "msys2.exe.sig"
+          if ( Test-Path -Path msys64\var\cache\msys2.exe.sig ) {
+              Write-Output "Cached installer sig" ;
+              if ( ((Get-FileHash msys2.exe.sig).Hash -ne (Get-FileHash msys64\var\cache\msys2.exe.sig).Hash) ) {
+                  Write-Output "Mis-matched installer sig, new installer download required" ;
+                  Remove-Item -Path msys64\var\cache\msys2.exe.sig ;
+                  if ( Test-Path -Path msys64\var\cache\msys2.exe ) {
+                      Remove-Item -Path msys64\var\cache\msys2.exe
+                  }
+              } else {
+                  Write-Output "Matched installer sig, cached installer still valid"
+              }
+          } else {
+              Write-Output "No cached installer sig, new installer download required" ;
+              if ( Test-Path -Path msys64\var\cache\msys2.exe ) {
+                  Remove-Item -Path msys64\var\cache\msys2.exe
+              }
+          }
+          if ( !(Test-Path -Path msys64\var\cache\msys2.exe ) ) {
+              Write-Output "Fetching latest installer" ;
+              Invoke-WebRequest "https://repo.msys2.org/distrib/msys2-x86_64-latest.sfx.exe" -outfile "msys64\var\cache\msys2.exe" ;
+              Copy-Item -Path msys2.exe.sig -Destination msys64\var\cache\msys2.exe.sig
+          } else {
+              Write-Output "Using cached installer"
+          }
+          Write-Output "Invoking msys2.exe installer at $(Get-Date -Format u)"
+          msys64\var\cache\msys2.exe -y
+          ((Get-Content -path .\msys64\etc\post-install\07-pacman-key.post -Raw) -replace '--refresh-keys', '--version') | Set-Content -Path .\msys64\etc\post-install\07-pacman-key.post
+          .\msys64\usr\bin\bash -lc "sed -i 's/^CheckSpace/#CheckSpace/g' /etc/pacman.conf"
+          .\msys64\usr\bin\bash -lc 'pacman --noconfirm -Syuu'  # Core update
+          .\msys64\usr\bin\bash -lc 'pacman --noconfirm -Syuu'  # Normal update
+          taskkill /F /FI "MODULES eq msys-2.0.dll"
+
+      - name: Install dependencies
+        run: |
+          Write-Output "Installing mingw packages at $(Get-Date -Format u)"
+          .\msys64\usr\bin\bash -lc 'pacman -Sy --noconfirm --needed \
+          bison \
+          diffutils \
+          flex \
+          tar \
+          wget \
+          git \
+          grep \
+          make \
+          rsync \
+          ninja \
+          glib2-devel \
+          patch \
+          sed \
+          mingw-w64-x86_64-binutils \
+          mingw-w64-x86_64-capstone \
+          mingw-w64-x86_64-ccache \
+          mingw-w64-x86_64-curl \
+          mingw-w64-x86_64-cyrus-sasl \
+          mingw-w64-x86_64-dtc \
+          mingw-w64-x86_64-gcc \
+          mingw-w64-x86_64-glib2 \
+          mingw-w64-x86_64-gnutls \
+          mingw-w64-x86_64-gtk3 \
+          mingw-w64-x86_64-libgcrypt \
+          mingw-w64-x86_64-libjpeg-turbo \
+          mingw-w64-x86_64-libnfs \
+          mingw-w64-x86_64-libpng \
+          mingw-w64-x86_64-libssh \
+          mingw-w64-x86_64-libtasn1 \
+          mingw-w64-x86_64-libusb \
+          mingw-w64-x86_64-lzo2 \
+          mingw-w64-x86_64-libslirp \
+          mingw-w64-x86_64-nettle \
+          mingw-w64-x86_64-clang \
+          mingw-w64-x86_64-ninja \
+          mingw-w64-x86_64-pixman \
+          mingw-w64-x86_64-pkgconf \
+          mingw-w64-x86_64-python \
+          mingw-w64-x86_64-SDL2 \
+          mingw-w64-x86_64-SDL2_image \
+          mingw-w64-x86_64-snappy \
+          mingw-w64-x86_64-spice \
+          mingw-w64-x86_64-usbredir \
+          mingw-w64-x86_64-zstd'
+
+      - name: Build
+        run: |
+          Write-Output "Running build at $(Get-Date -Format u)"
+          $env:CHERE_INVOKING = 'yes'  # Preserve the current working directory
+          $env:MSYS = 'winsymlinks:native' # Enable native Windows symlink
+          $env:CCACHE_BASEDIR = "$env:CI_PROJECT_DIR"
+          $env:CCACHE_DIR = "$env:CCACHE_BASEDIR/ccache"
+          $env:CCACHE_MAXSIZE = "500M"
+          $env:CCACHE_DEPEND = 1 # cache misses are too expensive with preprocessor mode
+          $env:CC = "ccache gcc"
+          mkdir build
+          cd build
+          D:\a\qemu\qemu\msys64\usr\bin\bash -lc "ccache --zero-stats"
+          D:\a\qemu\qemu\msys64\usr\bin\bash -lc "../configure --disable-werror --target-list=i386-softmmu --enable-whpx --enable-sdl --disable-capstone --enable-slirp"
+          D:\a\qemu\qemu\msys64\usr\bin\bash -lc "make -j$(nproc) CFLAGS="-Wall -Wno-error=pointer-to-int-cast -O2""
+          cd ..
+          D:\a\qemu\qemu\msys64\usr\bin\bash -lc "tar -czvf qemuwin.tar.gz ./build"
+          D:\a\qemu\qemu\msys64\usr\bin\bash -lc "ccache --show-stats"
+          Write-Output "Finished build at $(Get-Date -Format u)"
+          
+      - name: Upload Releases 
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: D:\a\qemu\qemu\qemuwin.tar.gz
+          draft: false
+
+
+
+
+
+        
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        uses: Amitie10g/install-package@main
+        with:
+          apt: >
+            meson
+            binutils-mips-linux-gnu
+            ninja-build
+            bsdmainutils
+            build-essential
+            libaudiofile-dev
+            binutils-djgpp
+            binutils-mingw-w64
+            libdigest-sha-perl
+            mingw-w64-tools
+            libsdl2-dev
+            libusb-1.0-0-dev
+            gcc-mingw-w64
+            g++-mingw-w64-i686
+            g++-mingw-w64
+            g++-10-multilib
+            gcc-10-multilib
+            gcc-mingw-w64-x86-64-win32-runtime
+            gcc-mingw-w64-i686
+            mingw-w64-x86-64-dev
+            mingw-w64-i686-dev
+            mingw-w64-common
+            libx11-dev
+            bison
+            diffutils
+            flex
+            make
+            sed
+            libglib2.0-dev
+            libfdt-dev
+            libpixman-1-dev
+            ninja-build
+            zlib1g-dev
+            libcapstone-dev
+            libslirp-dev
+            pkgconf
+            python3
+      - name: Build qemu
+        run: |
+          mkdir build && cd build
+          ../configure --disable-werror --target-list=i386-softmmu --enable-kvm --enable-sdl --disable-capstone --enable-slirp      
+          make -j$(nproc) CFLAGS="-Wall -Wno-error=pointer-to-int-cast -O2"
+          cd ..
+          tar -czvf qemu.tar.gz ./build
+          
+
+      - name: Upload Releases 
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: qemu.tar.gz
+          draft: false
+
+
+
+  build-wrappers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        uses: Amitie10g/install-package@main
+        with:
+          apt: >
+            binutils-mips-linux-gnu
+            ninja-build
+            bsdmainutils
+            build-essential
+            libaudiofile-dev
+            binutils-djgpp
+            binutils-mingw-w64
+            libdigest-sha-perl
+            mingw-w64-tools
+            libsdl2-dev
+            libusb-1.0-0-dev
+            gcc-mingw-w64
+            g++-mingw-w64-i686
+            g++-mingw-w64
+            g++-10-multilib
+            gcc-10-multilib
+            gcc-mingw-w64-x86-64-win32-runtime
+            gcc-mingw-w64-i686
+            mingw-w64-x86-64-dev
+            mingw-w64-i686-dev
+            mingw-w64-common
+            libx11-dev
+            libcapstone-dev
+            pkgconf
+            python3
+      - name: Build Wrappers/3dfx
+        run: |
+          git clone https://github.com/kjliew/qemu-3dfx.git
+          cd qemu-3dfx
+          cd wrappers/3dfx
+          mkdir build && cd build
+          bash ../../../scripts/conf_wrapper
+          make
+    
+      - name: Build Wrappers/Mesa
+        run: |
+          cd qemu-3dfx
+          cd wrappers/mesa
+          mkdir build && cd build
+          bash ../../../scripts/conf_wrapper
+          make
+
+      - name: Build Wrappers/Openglide
+        run: |
+          git clone https://github.com/kjliew/qemu-xtra.git
+          cd qemu-xtra
+          cd openglide
+          bash ./bootstrap
+          mkdir build && cd build
+          ../configure && make
+          cd ..
+          cd ..
+          cd ..
+          tar -czvf wrappers.tar.gz /home/runner/work/qemu/qemu/qemu-xtra/openglide/build /home/runner/work/qemu/qemu/qemu-3dfx/
+        
+
+
+      - name: Upload Releases 
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: wrappers.tar.gz
+          draft: false
