@@ -122,7 +122,7 @@ jobs:
           D:\a\qemu\qemu\msys64\usr\bin\bash -lc "../configure --disable-werror --target-list=i386-softmmu --enable-whpx --enable-sdl --disable-capstone --enable-slirp"
           D:\a\qemu\qemu\msys64\usr\bin\bash -lc "make -j$(nproc) CFLAGS="-Wall -Wno-error=pointer-to-int-cast -O2""
           cd ..
-          D:\a\qemu\qemu\msys64\usr\bin\bash -lc "tar -czvf qemu.tar.gz ./build"
+          D:\a\qemu\qemu\msys64\usr\bin\bash -lc "tar -czvf qemuwin.tar.gz ./build"
           D:\a\qemu\qemu\msys64\usr\bin\bash -lc "ccache --show-stats"
           Write-Output "Finished build at $(Get-Date -Format u)"
           
@@ -131,7 +131,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          file: D:\a\qemu\qemu\qemu.tar.gz
+          file: D:\a\qemu\qemu\qemuwin.tar.gz
           draft: false
 
 
